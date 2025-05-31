@@ -9,7 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Installing dependencies..."
-                sh 'npm install'
+                bat 'npm install'
                 echo "Build complete."
             }
         }
@@ -17,45 +17,46 @@ pipeline {
         stage('Test') {
             steps {
                 echo "Running tests..."
-                sh 'npm test'
+                bat 'npm test'
             }
         }
 
         stage('Code Quality') {
             steps {
                 echo "Running ESLint..."
-                sh 'npx eslint . || true'
+                bat 'npx eslint . || exit 0'
             }
         }
 
         stage('Security Scan') {
             steps {
                 echo "Running npm audit..."
-                sh 'npm audit --json || true'
+                bat 'npm audit --json || exit 0'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying app to Docker..."
-                sh 'docker build -t smarttask-app .'
-                sh 'docker run -d -p 3000:3000 smarttask-app'
+                echo "Building and running Docker container..."
+                bat 'docker build -t smarttask-app .'
+                bat 'docker run -d -p 3000:3000 smarttask-app'
             }
         }
 
         stage('Release') {
             steps {
                 echo "Tagging image for production..."
-                sh 'docker tag smarttask-app smarttask-app:prod'
+                bat 'docker tag smarttask-app smarttask-app:prod'
             }
         }
 
         stage('Monitoring') {
             steps {
-                echo "Showing container logs for monitoring..."
-                sh 'docker ps'
-                sh 'docker logs $(docker ps -q --filter ancestor=smarttask-app)'
+                echo "Displaying container logs..."
+                bat 'docker ps'
+                bat 'FOR /F "tokens=*" %%i IN (\'docker ps -q --filter "ancestor=smarttask-app"\') DO docker logs %%i'
             }
         }
     }
 }
+
